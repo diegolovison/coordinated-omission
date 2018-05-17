@@ -16,131 +16,31 @@ Learning about Coordinated Omission
 - https://www.youtube.com/watch?v=9MKY4KypBzg
 - http://psy-lob-saw.blogspot.com.br/2015/02/hdrhistogram-better-latency-capture.html
 - https://shipilev.net/blog/2014/nanotrusting-nanotime/
+- https://github.com/rvansa/radargun/blob/29704d2d9a72acc39453db1c4ebf25b9dde7d0c2/docs/measuring_performance/coordinated_omission.md
 
 ### Next versions
 - Plot the results into a graph
 - Combine both graph into one
-- Find out how rate `MeasureLatency::rate` will behave when using a time running instead of a fixed throughput
 
 ### Output Sample
 ```
-Starting latency test rate 200000 using coordinated omission: true 
- Latency measured : 
- 10000000 operations
- 0,20 us for average latency
- 0,02 us for min latency
- 0,17 us for 50 percentile
- 0,25 us for 90 percentile
- 0,51 us for 99 percentile
- 1,34 us for 99.9 percentile
- 12,29 us for 99.99 percentile
- 14417,92 us for max latency
+Coordinate Omission
+======= Latency =======
+Operations: 12223
+AverageLatency(us): 4904.766141209196
+MinLatency(us): 4014
+MaxLatency(us): 11010
+95thPercentileLatency(ms): 5
+99thPercentileLatency(ms): 5
 
-Starting latency test rate 200000 using coordinated omission: false 
- Latency measured : 
- 10000000 operations
- 0,67 us for average latency
- 0,02 us for min latency
- 0,23 us for 50 percentile
- 0,40 us for 90 percentile
- 0,51 us for 99 percentile
- 3,31 us for 99.9 percentile
- 1589,25 us for 99.99 percentile
- 4112,38 us for max latency
+Fix Coordinate Omission
+======= Latency =======
+Operations: 12540
+AverageLatency(us): 4987117.470009569
+MinLatency(us): 4653
+MaxLatency(us): 9865003
+95thPercentileLatency(ms): 9059
+99thPercentileLatency(ms): 9797
 
-Starting latency test rate 160000 using coordinated omission: true 
- Latency measured : 
- 10000000 operations
- 0,15 us for average latency
- 0,02 us for min latency
- 0,11 us for 50 percentile
- 0,29 us for 90 percentile
- 0,54 us for 99 percentile
- 2,03 us for 99.9 percentile
- 14,98 us for 99.99 percentile
- 3964,93 us for max latency
-
-Starting latency test rate 160000 using coordinated omission: false 
- Latency measured : 
- 10000000 operations
- 2,88 us for average latency
- 0,02 us for min latency
- 0,24 us for 50 percentile
- 0,41 us for 90 percentile
- 0,71 us for 99 percentile
- 802,82 us for 99.9 percentile
- 4063,23 us for 99.99 percentile
- 6914,05 us for max latency
-
-Starting latency test rate 140000 using coordinated omission: true 
- Latency measured : 
- 10000000 operations
- 0,31 us for average latency
- 0,02 us for min latency
- 0,37 us for 50 percentile
- 0,41 us for 90 percentile
- 0,53 us for 99 percentile
- 1,86 us for 99.9 percentile
- 14,46 us for 99.99 percentile
- 2670,59 us for max latency
-
-Starting latency test rate 140000 using coordinated omission: false 
- Latency measured : 
- 10000000 operations
- 0,85 us for average latency
- 0,02 us for min latency
- 0,24 us for 50 percentile
- 0,40 us for 90 percentile
- 0,55 us for 99 percentile
- 6,98 us for 99.9 percentile
- 2260,99 us for 99.99 percentile
- 7307,26 us for max latency
-
-Starting latency test rate 120000 using coordinated omission: true 
- Latency measured : 
- 10000000 operations
- 0,32 us for average latency
- 0,02 us for min latency
- 0,36 us for 50 percentile
- 0,41 us for 90 percentile
- 0,52 us for 99 percentile
- 1,28 us for 99.9 percentile
- 12,74 us for 99.99 percentile
- 2490,37 us for max latency
-
-Starting latency test rate 120000 using coordinated omission: false 
- Latency measured : 
- 10000000 operations
- 1,68 us for average latency
- 0,02 us for min latency
- 0,24 us for 50 percentile
- 0,40 us for 90 percentile
- 0,53 us for 99 percentile
- 76,29 us for 99.9 percentile
- 3735,55 us for 99.99 percentile
- 7995,39 us for max latency
-
-Starting latency test rate 100000 using coordinated omission: true 
- Latency measured : 
- 10000000 operations
- 0,32 us for average latency
- 0,02 us for min latency
- 0,29 us for 50 percentile
- 0,38 us for 90 percentile
- 0,52 us for 99 percentile
- 2,90 us for 99.9 percentile
- 17,79 us for 99.99 percentile
- 17563,65 us for max latency
-
-Starting latency test rate 100000 using coordinated omission: false 
- Latency measured : 
- 10000000 operations
- 4,65 us for average latency
- 0,02 us for min latency
- 0,24 us for 50 percentile
- 0,41 us for 90 percentile
- 0,76 us for 99 percentile
- 1261,57 us for 99.9 percentile
- 7831,55 us for 99.99 percentile
- 12779,52 us for max latency
+Process finished with exit code 0
  ```

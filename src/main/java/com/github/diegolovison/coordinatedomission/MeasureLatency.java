@@ -3,74 +3,68 @@ package com.github.diegolovison.coordinatedomission;
 import org.HdrHistogram.Histogram;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
+import java.util.function.Supplier;
 
 public class MeasureLatency {
 
-    private static final String REPORT_MESSAGE =
-            "Latency measured : \n" +
-                " %d operations\n" +
-                " %.2f us for average latency\n" +
-                " %.2f us for min latency\n" +
-                " %.2f us for 50 percentile\n" +
-                " %.2f us for 90 percentile\n" +
-                " %.2f us for 99 percentile\n" +
-                " %.2f us for 99.9 percentile\n" +
-                " %.2f us for 99.99 percentile\n" +
-                " %.2f us for max latency\n";
+    private Histogram latencyHistogram;
+    private long timeNs;
+    private Supplier<Long> request;
+    private long intervalNs;
 
-    private Histogram hdrHistogram;
-    private int tests;
-    private long rate;
-    private boolean coordinatedOmission;
-
-    public MeasureLatency() {
-        this.hdrHistogram = new Histogram(TimeUnit.MINUTES.toNanos(1), 2);
-    }
-
-    public MeasureLatency configure(int targetThroughput, boolean coordinatedOmission) {
-        this.coordinatedOmission = coordinatedOmission;
-        this.tests = Math.min(120 * targetThroughput, 10_000_000);
-        this.rate = (long) (1e9 / targetThroughput);
-        return this;
-    }
-
-    public MeasureLatency measure() throws InterruptedException {
-        long now = System.nanoTime();
-        for (int i = 0; i < this.tests; i++) {
-            if (this.coordinatedOmission)
-                now = System.nanoTime();
-            now += this.rate;
-            while (System.nanoTime() < now)
-
-            Thread.sleep((long) Math.random() * 10);
-
-            observe(System.nanoTime() - now);
+    public MeasureLatency configure(long timeSec, Supplier<Long> request, int opsPerSec) {
+        this.timeNs = TimeUnit.SECONDS.toNanos(timeSec);
+        this.latencyHistogram = new Histogram(timeNs, 2);
+        this.request = request;
+        if (opsPerSec > 0) {
+            this.intervalNs = 1000000000 / opsPerSec;
         }
 
         return this;
     }
 
-    public String generateReportAndReset() {
-        String message = String.format(REPORT_MESSAGE,
-                this.hdrHistogram.getTotalCount(),
-                us(this.hdrHistogram.getMean()),
-                us(this.hdrHistogram.getMinValue()),
-                us(this.hdrHistogram.getValueAtPercentile(50)),
-                us(this.hdrHistogram.getValueAtPercentile(90)),
-                us(this.hdrHistogram.getValueAtPercentile(99)),
-                us(this.hdrHistogram.getValueAtPercentile(99.9)),
-                us(this.hdrHistogram.getValueAtPercentile(99.99)),
-                us(this.hdrHistogram.getMaxValue())
-        );
-        this.hdrHistogram.reset();
-        return message;
+    public MeasureLatency measure() {
+
+        int i = 0;
+        long start = System.nanoTime();
+        while (true) {
+
+            long intendedTime;
+            if (this.intervalNs > 0) {
+                intendedTime = start + (i++) * intervalNs;
+                long now;
+                while ((now = System.nanoTime()) < intendedTime)
+                    LockSupport.parkNanos(intendedTime - now);
+            } else {
+                intendedTime = System.nanoTime();
+            }
+
+            // request
+            long deadLine = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(request.get());
+            long now;
+            while ((now = System.nanoTime()) < deadLine)
+                LockSupport.parkNanos(deadLine - now);
+
+            if (System.nanoTime() - start < timeNs) {
+                long end = System.nanoTime();
+                this.latencyHistogram.recordValue(end - intendedTime);
+            } else {
+                break;
+            }
+        }
+
+        return this;
     }
 
-    private void observe(long time) {
-        this.hdrHistogram.recordValue(time);
-    }
+    public void generateReport() {
 
-    private static double us(double d) {
-        return d / 1e3;
+        System.out.println("======= Latency =======");
+        System.out.println("Operations: " + latencyHistogram.getTotalCount());
+        System.out.println("AverageLatency(us): " + latencyHistogram.getMean() / 1000);
+        System.out.println("MinLatency(us): " + latencyHistogram.getMinValue() / 1000);
+        System.out.println("MaxLatency(us): " + latencyHistogram.getMaxValue() / 1000);
+        System.out.println("95thPercentileLatency(ms): " + latencyHistogram.getValueAtPercentile(90) / 1000000);
+        System.out.println("99thPercentileLatency(ms): " + latencyHistogram.getValueAtPercentile(99) / 1000000);
     }
 }
